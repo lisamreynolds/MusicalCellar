@@ -15,7 +15,6 @@ namespace MusicalCellar
         public override void Entry(IModHelper helper)
         {
             Helper.Events.Player.Warped += Warped;
-            Helper.Events.GameLoop.DayStarted += DayStarted;
             Helper.Events.GameLoop.DayEnding += DayEnding;
             Helper.Events.GameLoop.UpdateTicked += UpdateTicked;
         }
@@ -25,12 +24,13 @@ namespace MusicalCellar
             if (Game1.currentLocation?.Name != FARMHOUSE_NAME) return;
 
             GameLocation farmHouse = Game1.currentLocation;
-            if ((!farmHouse.IsMiniJukeboxPlaying() && !string.IsNullOrEmpty(currentlyPlaying)) ||
+            if (!string.IsNullOrEmpty(currentlyPlaying) &&
+                (!farmHouse.IsMiniJukeboxPlaying() ||
                 farmHouse.miniJukeboxTrack != currentlyPlaying ||
                 Game1.player.isInBed ||
                 Game1.timeOfDay >= 2600 ||
                 Game1.player.stamina <= -15f
-                )
+                ))
             {
                 // The player has turned the jukebox off or changed the track
                 // or gone to bed
@@ -44,12 +44,6 @@ namespace MusicalCellar
             }
         }
 
-        private void DayStarted(object sender, DayStartedEventArgs e)
-        {
-            if (!Game1.locations.Any(l => l.Name == CELLAR_NAME)) return;
-
-            EnteredFarmHouse();
-        }
         private void DayEnding(object sender, DayEndingEventArgs e)
         {
             StopJukeboxMusic();
@@ -57,13 +51,7 @@ namespace MusicalCellar
 
         private void Warped(object sender, WarpedEventArgs e)
         {
-            if (!Game1.locations.Any(l => l.Name == CELLAR_NAME)) return;
-
-            if (e.NewLocation.Name == FARMHOUSE_NAME)
-            {
-                EnteredFarmHouse();
-            }
-            else if (e.OldLocation.Name == FARMHOUSE_NAME && e.NewLocation.Name != CELLAR_NAME)
+            if (e.OldLocation.Name == FARMHOUSE_NAME && e.NewLocation.Name != CELLAR_NAME)
             {
                 LeftFarmhouse();
             }
