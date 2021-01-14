@@ -26,13 +26,12 @@ namespace MusicalCellar
             GameLocation farmHouse = Game1.currentLocation;
             if (!string.IsNullOrEmpty(currentlyPlaying) &&
                 (!farmHouse.IsMiniJukeboxPlaying() ||
-                farmHouse.miniJukeboxTrack != currentlyPlaying ||
                 Game1.player.isInBed ||
                 Game1.timeOfDay >= 2600 ||
                 Game1.player.stamina <= -15f
                 ))
             {
-                // The player has turned the jukebox off or changed the track
+                // The player has turned the jukebox off
                 // or gone to bed
                 // or passed out while in the farmhouse
                 StopJukeboxMusic();
@@ -58,20 +57,6 @@ namespace MusicalCellar
         }
 
         /// <summary>
-        /// Manage music when the player has entered the farmhouse, either by Warp or by DayStarted.
-        /// </summary>
-        private void EnteredFarmHouse()
-        {
-            GameLocation farmhouse = Game1.currentLocation;
-            GameLocation cellar = Game1.locations.First(l => l.Name == CELLAR_NAME);
-            if (farmhouse.IsMiniJukeboxPlaying() && !cellar.IsMiniJukeboxPlaying())
-            {
-                Monitor.Log("FarmHouse Jukebox is playing " + farmhouse.miniJukeboxTrack);
-                StartJukeboxMusic();
-            }
-        }
-
-        /// <summary>
         /// Manage music when the player leaves the FarmHouse, but does not go into the Cellar
         /// </summary>
         public void LeftFarmhouse()
@@ -88,7 +73,7 @@ namespace MusicalCellar
         {
             Monitor.Log("Starting music");
 
-            GameLocation farmHouse = Game1.locations.First(l => l.Name == FARMHOUSE_NAME);
+            GameLocation farmHouse = Game1.currentLocation;
             Game1.changeMusicTrack(farmHouse.miniJukeboxTrack);
             currentlyPlaying = farmHouse.miniJukeboxTrack;
         }
