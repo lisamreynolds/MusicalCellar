@@ -11,6 +11,7 @@ namespace MusicalCellar
         private const string FARMHOUSE_NAME = "FarmHouse";
 
         private string currentlyPlaying = "";
+        private string trackSource = "";
 
         public override void Entry(IModHelper helper)
         {
@@ -21,25 +22,44 @@ namespace MusicalCellar
 
         private void UpdateTicked(object sender, UpdateTickedEventArgs e)
         {
-            if (Game1.currentLocation?.Name != FARMHOUSE_NAME) return;
+            if (Game1.currentLocation?.Name != FARMHOUSE_NAME && Game1.currentLocation?.Name != CELLAR_NAME) return;
 
-            GameLocation farmHouse = Game1.currentLocation;
-            if (!string.IsNullOrEmpty(currentlyPlaying) &&
-                (!farmHouse.IsMiniJukeboxPlaying() ||
-                Game1.player.isInBed ||
-                Game1.timeOfDay >= 2600 ||
-                Game1.player.stamina <= -15f
-                ))
+            GameLocation room = Game1.currentLocation;
+            string otherRoomName = (room.Name == FARMHOUSE_NAME) ? CELLAR_NAME : FARMHOUSE_NAME;
+            GameLocation otherRoom = Game1.locations.First(l => l.Name == otherRoomName);
+
+            if (!string.IsNullOrEmpty(currentlyPlaying) && 
+                (Game1.player.isInBed ||
+                 Game1.timeOfDay >= 2600 ||
+                 Game1.player.stamina <= -15f))
+            {
+                // The player is in bed or exhausted
+                StopJukeboxMusic();
+                // There will be no music
+                return;
+            }
+            if (!string.IsNullOrEmpty(currentlyPlaying) && room.Name == trackSource && !room.IsMiniJukeboxPlaying())
             {
                 // The player has turned the jukebox off
-                // or gone to bed
-                // or passed out while in the farmhouse
                 StopJukeboxMusic();
+                // There may be other music to play
             }
-            if (farmHouse.IsMiniJukeboxPlaying() && farmHouse.miniJukeboxTrack != currentlyPlaying)
+
+            if (room.IsMiniJukeboxPlaying())
             {
-                // The jukebox is on but the track has changed
-                StartJukeboxMusic();
+                if (room.miniJukeboxTrack != currentlyPlaying)
+                {
+                    // The jukebox is on but the track has changed
+                    StartJukeboxMusic(room);
+                }
+            }
+            else if (otherRoom.IsMiniJukeboxPlaying())
+            {
+                if (otherRoom.miniJukeboxTrack != currentlyPlaying)
+                {
+                    // Overhear the music from the other room
+                    StartJukeboxMusic(otherRoom);
+                }
             }
         }
 
@@ -69,13 +89,13 @@ namespace MusicalCellar
         /// <summary>
         /// Manually start the FarmHouse "jukebox" music
         /// </summary>
-        public void StartJukeboxMusic()
+        public void StartJukeboxMusic(GameLocation room)
         {
             Monitor.Log("Starting music");
 
-            GameLocation farmHouse = Game1.currentLocation;
-            Game1.changeMusicTrack(farmHouse.miniJukeboxTrack);
-            currentlyPlaying = farmHouse.miniJukeboxTrack;
+            Game1.changeMusicTrack(room.miniJukeboxTrack);
+            currentlyPlaying = room.miniJukeboxTrack;
+            trackSource = room.Name;
         }
 
         /// <summary>
