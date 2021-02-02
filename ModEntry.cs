@@ -23,6 +23,7 @@ namespace MusicalCellar
         private void UpdateTicked(object sender, UpdateTickedEventArgs e)
         {
             if (Game1.currentLocation?.Name != FARMHOUSE_NAME && Game1.currentLocation?.Name != CELLAR_NAME) return;
+            if (!Game1.locations.Any(location => location.Name == CELLAR_NAME)) return;
 
             GameLocation room = Game1.currentLocation;
             string otherRoomName = (room.Name == FARMHOUSE_NAME) ? CELLAR_NAME : FARMHOUSE_NAME;
