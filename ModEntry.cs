@@ -29,7 +29,7 @@ namespace MusicalCellar
             string otherRoomName = (room.Name == FARMHOUSE_NAME) ? CELLAR_NAME : FARMHOUSE_NAME;
             GameLocation otherRoom = Game1.locations.First(l => l.Name == otherRoomName);
 
-            if (!string.IsNullOrEmpty(currentlyPlaying) && 
+            if (!string.IsNullOrEmpty(currentlyPlaying) &&
                 (Game1.player.isInBed ||
                  Game1.timeOfDay >= 2600 ||
                  Game1.player.stamina <= -15f))
@@ -66,6 +66,7 @@ namespace MusicalCellar
 
         private void DayEnding(object sender, DayEndingEventArgs e)
         {
+            if (string.IsNullOrEmpty(currentlyPlaying)) return;
             StopJukeboxMusic();
         }
 
@@ -83,6 +84,7 @@ namespace MusicalCellar
         public void LeftFarmhouse()
         {
             Monitor.Log("Left the house");
+            if (string.IsNullOrEmpty(currentlyPlaying)) return;
             StopJukeboxMusic();
             StartOutsideMusic();
         }
@@ -93,7 +95,6 @@ namespace MusicalCellar
         public void StartJukeboxMusic(GameLocation room)
         {
             Monitor.Log("Starting music");
-
             Game1.changeMusicTrack(room.miniJukeboxTrack);
             currentlyPlaying = room.miniJukeboxTrack;
             trackSource = room.Name;
@@ -105,7 +106,6 @@ namespace MusicalCellar
         public void StopJukeboxMusic()
         {
             Monitor.Log("Stopping music");
-
             Game1.changeMusicTrack("none", track_interruptable: true);
             currentlyPlaying = "";
         }
@@ -115,8 +115,8 @@ namespace MusicalCellar
         /// </summary>
         public void StartOutsideMusic()
         {
-            Game1.requestedMusicTrack = "fake_ambient"; // Trick Game1.ShouldPlayMorningSong
-            Game1.currentLocation.resetForPlayerEntry(); // Includes music selection
+            Game1.currentLocation.checkForMusic(Game1.currentGameTime);
+            Game1.currentLocation.resetForPlayerEntry();
         }
     }
 }
